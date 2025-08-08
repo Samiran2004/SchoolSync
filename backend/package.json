@@ -4,8 +4,10 @@
   "description": "This is the backend folder for our SchoolSync project",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Samiran2004/SchoolSync.git"
@@ -22,5 +24,14 @@
   "bugs": {
     "url": "https://github.com/Samiran2004/SchoolSync/issues"
   },
-  "homepage": "https://github.com/Samiran2004/SchoolSync#readme"
+  "homepage": "https://github.com/Samiran2004/SchoolSync#readme",
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "figlet": "^1.8.2",
+    "mongoose": "^8.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
