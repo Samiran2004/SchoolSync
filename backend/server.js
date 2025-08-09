@@ -2,11 +2,15 @@ import express from 'express'
 import envConfigs from './configs/env.config.js';
 import connectDB from './utils/connectDB.js';
 import figlet from 'figlet';
+import Router from './router/index.router.js';
 
 const app = express();
 
 // Connect database...
 connectDB(envConfigs.DATABASE_URI);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (req, res) => {
     return res.status(200).json({
@@ -14,6 +18,8 @@ app.get('/health', (req, res) => {
         message: "Server is up and running..."
     });
 });
+
+app.use('/api/v1', Router.v1);
 
 // Start the server...
 app.listen(envConfigs.PORT, (err) => {
