@@ -1,6 +1,8 @@
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import Models from '../../model/index.model.js';
 import bcrypt from 'bcryptjs';
+import MailTemplates from '../../Template/index.template.js';
+import sendMail from '../../service/mailer.service.js';
 
 const studentSignUp = async (req, res) => {
     try {
@@ -96,6 +98,56 @@ const studentSignUp = async (req, res) => {
             addressId: addressData._id,
             username: username
         });
+
+        // Send a success mail...
+        const emailData = MailTemplates.StudentSignupMailTemplate({
+            email: email,
+            name: first_name,
+            subject: "Welcome to SchoolSync"
+        });
+
+        await sendMail(emailData, (error, info) => {
+            if (error) {
+                console.log("Mail sending error: ", error);
+            } else {
+                console.log("Mail sent: ", info);
+            }
+        });
+
+
+        // Send mail if father mail address is not same as student's mail address...
+        if (father_email !== null && father_email !== undefined && email !== father_email) {
+            const emailData = MailTemplates.FatherSignupMailTemplate({
+                email: father_email,
+                name: father_first_name + " " + father_last_name,
+                subject: "Welcome to SchoolSync"
+            });
+
+            await sendMail(emailData, (error, info) => {
+                if (error) {
+                    console.log("Mail sending error: ", error);
+                } else {
+                    console.log("Mail sent: ", info);
+                }
+            });
+        }
+
+        // Send mail if mother's mail address is not same as student and father's mail address...
+        if (mother_email && mother_email !== father_email && mother_email !== email) {
+            const emailData = MailTemplates.MotherSignupMailTemplate({
+                name: mother_first_name + " " + mother_last_name,
+                email: mother_email,
+                subject: "Welcome to SchoolSync"
+            });
+
+            await sendMail(emailData, (error, info) => {
+                if (error) {
+                    console.log("Mail sending error: ", error);
+                } else {
+                    console.log("Mail sent: ", info);
+                }
+            });
+        }
 
         return res.status(StatusCodes.CREATED).json({
             status: 'Ok',
