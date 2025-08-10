@@ -31,6 +31,9 @@ const studentSchema = new mongoose.Schema({
         type: String,
         default: "https://static.vecteezy.com/system/resources/previews/007/469/004/non_2x/graduated-student-in-simple-flat-personal-profile-icon-or-symbol-people-concept-illustration-vector.jpg"
     },
+    profile_image_public_key: {
+        type: String
+    },
     gender: {
         type: String,
         enum: ['Male', 'Female']

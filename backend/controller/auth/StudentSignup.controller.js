@@ -3,6 +3,8 @@ import Models from '../../model/index.model.js';
 import bcrypt from 'bcryptjs';
 import MailTemplates from '../../Template/index.template.js';
 import sendMail from '../../service/mailer.service.js';
+import cloudinary from '../../service/cloudinary.service.js'
+import fs from 'fs';
 
 const studentSignUp = async (req, res) => {
     try {
@@ -54,21 +56,52 @@ const studentSignUp = async (req, res) => {
             });
         }
 
-        // Save father's details..
-        const fatherData = await Models.FatherModel.create({
+        // Check father is already exist in database or not...
+        let fatherId = "";
+        const isExistFather = await Models.FatherModel.findOne({
             first_name: father_first_name,
             last_name: father_last_name,
             email: father_email,
             phone_number: father_phone_number
         });
 
-        // Save mother's details...
-        const motherData = await Models.MotherModel.create({
+        // Save father's details..
+        if (!isExistFather) {
+            const fatherData = await Models.FatherModel.create({
+                first_name: father_first_name,
+                last_name: father_last_name,
+                email: father_email,
+                phone_number: father_phone_number
+            });
+
+            fatherId = fatherData._id;
+        } else {
+            fatherId = isExistFather._id;
+        }
+
+        // Check mother is already exist in database or not...
+        let motherId = "";
+
+        const isExistMother = await Models.MotherModel.findOne({
             first_name: mother_first_name,
             last_name: mother_last_name,
             email: mother_email,
             phone_number: mother_phone_number
         });
+
+        // Save mother's details...
+        if (!isExistMother) {
+            const motherData = await Models.MotherModel.create({
+                first_name: mother_first_name,
+                last_name: mother_last_name,
+                email: mother_email,
+                phone_number: mother_phone_number
+            });
+
+            motherId = motherData._id;
+        } else {
+            motherId = isExistMother._id;
+        }
 
         // Save address details...
         const addressData = await Models.AddressModel.create({
@@ -86,6 +119,18 @@ const studentSignUp = async (req, res) => {
         // Create username...
         const username = await generateUsername(first_name);
 
+        // Upload profile image...
+        let profileImageUrl = "";
+        let profileImagePublicKey = "";
+        if (req.file) {
+            const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
+                folder: "students_profile_photos"
+            });
+            fs.unlinkSync(req.file.path);
+            profileImageUrl = uploadResponse.secure_url;
+            profileImagePublicKey = uploadResponse.public_id;
+        }
+
         const studentData = await Models.StudentModel.create({
             first_name: first_name,
             last_name: last_name,
@@ -93,10 +138,12 @@ const studentSignUp = async (req, res) => {
             phone_number: phone_number,
             password: hashedPassword,
             gender: gender,
-            fatherId: fatherData._id,
-            motherId: motherData._id,
+            fatherId: fatherId,
+            motherId: motherId,
             addressId: addressData._id,
-            username: username
+            username: username,
+            profile_image_url: profileImageUrl,
+            profile_image_public_key: profileImagePublicKey
         });
 
         // Send a success mail...
@@ -182,7 +229,7 @@ async function generateUsername(name) {
         return userName;
     }
 
-    generateUsername(name);
+    return generateUsername(name);
 }
 
 export default studentSignUp;
