@@ -9,4 +9,8 @@ const v1Router = express.Router();
 
 v1Router.post('/signup/student', upload.single("profileImage"), Controller.SignupStudent);
 
+// Signup for teacher...
+// /api/v1/stgnup/teacher
+v1Router.post('/signup/teacher', upload.single('profileImage'), Controller.SignupTeacher);
+
 export default v1Router;
