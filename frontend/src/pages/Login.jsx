@@ -28,7 +28,7 @@ const LoginPage = () => {
     try {
       // Your login logic here
       console.log('Login attempt:', { email, password });
-      
+
       // Simulate API call
       setTimeout(() => {
         setLoading(false);
@@ -44,9 +44,9 @@ const LoginPage = () => {
   return (
     <div className="login-container">
       {/* GradientBars as background */}
-      <GradientBars 
-        bars={25}
-        colors={["#667eea", "#764ba2", "transparent"]} 
+      <GradientBars
+        bars={30}
+        colors={["#10b981", "#3b82f6", "transparent"]}
       />
 
       <div className="login-content">
@@ -105,19 +105,15 @@ const LoginPage = () => {
                 />
               </div>
 
-              <div className="form-options">
-                <label className="remember-checkbox">
-                  <input type="checkbox" />
-                  <span className="checkmark"></span>
-                  Remember me
-                </label>
-                <a href="#" className="forgot-link">
-                  Forgot Password?
-                </a>
-              </div>
+              {/* <div className="form-options"> */}
 
-              <Button 
-                type="submit" 
+              <a href="#" className="forgot-link">
+                Forgot Password?
+              </a>
+              {/* </div> */}
+
+              <Button
+                type="submit"
                 className="login-button"
                 disabled={loading}
               >

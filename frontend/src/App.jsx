@@ -3,6 +3,7 @@ import Loader from './components/Loader'
 import LoginPage from './pages/Login'
 import GradientBarsPreview from './components/mvpblocks/gradient-bars-preview';
 import { GradientBars } from './components/GradientBars';
+import StudentSignup from './pages/auth/SignupStudent';
 
 function App() {
 
@@ -24,15 +25,11 @@ function App() {
       </div>
     ) : (
       <div className="relative h-screen">
-        {/* GradientBars as background */}
-        <GradientBars
-          bars={20}
-          colors={["#4f46e5", "#06b6d4", "transparent"]}
-        />
 
         {/* LoginPage as foreground content */}
         <div className="relative z-10">
-          <LoginPage />
+          {/* <LoginPage /> */}
+          <StudentSignup/>
         </div>
       </div>
     )
