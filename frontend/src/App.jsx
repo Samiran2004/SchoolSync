@@ -24,12 +24,7 @@ function App() {
       </div>
     ) : (
       <div className="relative h-screen">
-        {/* GradientBars as background */}
-        <GradientBars
-          bars={20}
-          colors={["#4f46e5", "#06b6d4", "transparent"]}
-        />
-
+        
         {/* LoginPage as foreground content */}
         <div className="relative z-10">
           <LoginPage />
