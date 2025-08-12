@@ -4,9 +4,9 @@ import LoginPage from './pages/Login'
 import GradientBarsPreview from './components/mvpblocks/gradient-bars-preview';
 import { GradientBars } from './components/GradientBars';
 import StudentSignup from './pages/auth/SignupStudent';
+import CircularText from './components/CircularText';
 
 function App() {
-
   const [loading, setLoading] = useState(true);
 
   useState(() => {
@@ -22,18 +22,19 @@ function App() {
       <div className='h-screen flex justify-center items-center border-8'>
         {/* <LoginPage/> */}
         <Loader />
+        {/* <CircularText/> */}
       </div>
     ) : (
-      <div className="relative h-screen">
-
-        {/* LoginPage as foreground content */}
-        <div className="relative z-10">
-          {/* <LoginPage /> */}
-          <StudentSignup/>
-        </div>
+      <div className="flex h-screen items-center justify-center bg-white">
+        <CircularText
+          text="SchoolSync • "
+          spinDuration={20}
+          onHover="speedUp"
+          className="text-black"
+        />
       </div>
     )
   )
 }
 
-export default App
+export default App;
