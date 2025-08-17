@@ -119,12 +119,12 @@
 
 .step-label {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: gray;
   font-weight: 500;
 }
 
 .progress-step.active .step-label {
-  color: white;
+  color: black;
 }
 
 /* Card styling */
@@ -140,7 +140,7 @@
 .card-header {
   text-align: center;
   padding: 30px 30px 20px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  /* background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); */
 }
 
 .card-title {
