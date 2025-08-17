@@ -26,16 +26,7 @@ function App() {
         <Loader />
         {/* <CircularText/> */}
       </div>
-    ) : (
-      <div className="flex h-screen items-center justify-center bg-white">
-        <CircularText
-          text="SchoolSync • "
-          spinDuration={20}
-          onHover="speedUp"
-          className="text-black"
-        />
-      </div>
-    )
+    );
   }
 
   return (
