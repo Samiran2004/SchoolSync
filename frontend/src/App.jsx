@@ -6,9 +6,9 @@ import { GradientBars } from './components/GradientBars';
 import StudentSignup from './pages/auth/SignupStudent';
 import PageNotFound from './pages/PageNotFound';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import CircularText from './components/CircularText';
 
 function App() {
-
   const [loading, setLoading] = useState(true);
 
   useState(() => {
@@ -24,6 +24,16 @@ function App() {
       <div className='h-screen flex justify-center items-center border-8'>
         {/* <LoginPage/> */}
         <Loader />
+        {/* <CircularText/> */}
+      </div>
+    ) : (
+      <div className="flex h-screen items-center justify-center bg-white">
+        <CircularText
+          text="SchoolSync • "
+          spinDuration={20}
+          onHover="speedUp"
+          className="text-black"
+        />
       </div>
     )
   }
