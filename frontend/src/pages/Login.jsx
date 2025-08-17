@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { GradientBars } from '@/components/ui/gradient-bars';
 import '../css/LoginPage.css';
+import { Link } from 'react-router-dom';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -36,6 +37,7 @@ const LoginPage = () => {
       }, 2000);
 
     } catch (err) {
+      console.log("Error in login...", err);
       setError('Login failed. Please try again.');
       setLoading(false);
     }
@@ -131,7 +133,7 @@ const LoginPage = () => {
         </Card>
 
         <div className="login-footer">
-          <p>Don't have an account? <a href="#" className="signup-link">Create Account</a></p>
+          <p>Don't have an account? <Link to="/signup/student" className="signup-link">Create Account</Link></p>
           <p className="copyright">© 2025 SchoolSync. All rights reserved.</p>
         </div>
       </div>
