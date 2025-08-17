@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GradientBars } from '@/components/ui/gradient-bars';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GradientBars } from '@/components/ui/gradient-bars';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../css/StudentSignupPage.css';
-import { Link } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 
 const StudentSignup = () => {
     const [formData, setFormData] = useState({
@@ -43,6 +44,9 @@ const StudentSignup = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
+    const { signUpStudent } = useAuthStore();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -75,20 +79,33 @@ const StudentSignup = () => {
     };
 
     const validateStep = (step) => {
+        console.log(`🔍 Validating step ${step}`);
         const newErrors = {};
 
         if (step === 1) {
             // Student details validation
             if (!formData.first_name.trim()) newErrors.first_name = 'First name is required';
             if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
-            if (!formData.email.trim()) newErrors.email = 'Email is required';
-            if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-            if (!formData.phone_number.trim()) newErrors.phone_number = 'Phone number is required';
-            if (!/^\d{10}$/.test(formData.phone_number)) newErrors.phone_number = 'Phone number must be 10 digits';
-            if (!formData.password) newErrors.password = 'Password is required';
-            if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-            if (!formData.confirm_password) newErrors.confirm_password = 'Please confirm password';
-            if (formData.password !== formData.confirm_password) newErrors.confirm_password = 'Passwords do not match';
+            if (!formData.email.trim()) {
+                newErrors.email = 'Email is required';
+            } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+                newErrors.email = 'Email is invalid';
+            }
+            if (!formData.phone_number.trim()) {
+                newErrors.phone_number = 'Phone number is required';
+            } else if (!/^\d{10}$/.test(formData.phone_number)) {
+                newErrors.phone_number = 'Phone number must be 10 digits';
+            }
+            if (!formData.password) {
+                newErrors.password = 'Password is required';
+            } else if (formData.password.length < 6) {
+                newErrors.password = 'Password must be at least 6 characters';
+            }
+            if (!formData.confirm_password) {
+                newErrors.confirm_password = 'Please confirm password';
+            } else if (formData.password !== formData.confirm_password) {
+                newErrors.confirm_password = 'Passwords do not match';
+            }
             if (!formData.gender) newErrors.gender = 'Please select gender';
         }
 
@@ -96,8 +113,11 @@ const StudentSignup = () => {
             // Address validation
             if (!formData.vill.trim()) newErrors.vill = 'Village/Area is required';
             if (!formData.post.trim()) newErrors.post = 'Post office is required';
-            if (!formData.pin.trim()) newErrors.pin = 'PIN code is required';
-            if (!/^\d{6}$/.test(formData.pin)) newErrors.pin = 'PIN code must be 6 digits';
+            if (!formData.pin.trim()) {
+                newErrors.pin = 'PIN code is required';
+            } else if (!/^\d{6}$/.test(formData.pin)) {
+                newErrors.pin = 'PIN code must be 6 digits';
+            }
             if (!formData.dist.trim()) newErrors.dist = 'District is required';
             if (!formData.state.trim()) newErrors.state = 'State is required';
         }
@@ -106,24 +126,39 @@ const StudentSignup = () => {
             // Father details validation
             if (!formData.father_first_name.trim()) newErrors.father_first_name = 'Father first name is required';
             if (!formData.father_last_name.trim()) newErrors.father_last_name = 'Father last name is required';
-            if (!formData.father_email.trim()) newErrors.father_email = 'Father email is required';
-            if (!/\S+@\S+\.\S+/.test(formData.father_email)) newErrors.father_email = 'Father email is invalid';
-            if (!formData.father_phone_number.trim()) newErrors.father_phone_number = 'Father phone number is required';
-            if (!/^\d{10}$/.test(formData.father_phone_number)) newErrors.father_phone_number = 'Father phone number must be 10 digits';
+            if (!formData.father_email.trim()) {
+                newErrors.father_email = 'Father email is required';
+            } else if (!/\S+@\S+\.\S+/.test(formData.father_email)) {
+                newErrors.father_email = 'Father email is invalid';
+            }
+            if (!formData.father_phone_number.trim()) {
+                newErrors.father_phone_number = 'Father phone number is required';
+            } else if (!/^\d{10}$/.test(formData.father_phone_number)) {
+                newErrors.father_phone_number = 'Father phone number must be 10 digits';
+            }
         }
 
         if (step === 4) {
             // Mother details validation
             if (!formData.mother_first_name.trim()) newErrors.mother_first_name = 'Mother first name is required';
             if (!formData.mother_last_name.trim()) newErrors.mother_last_name = 'Mother last name is required';
-            if (!formData.mother_email.trim()) newErrors.mother_email = 'Mother email is required';
-            if (!/\S+@\S+\.\S+/.test(formData.mother_email)) newErrors.mother_email = 'Mother email is invalid';
-            if (!formData.mother_phone_number.trim()) newErrors.mother_phone_number = 'Mother phone number is required';
-            if (!/^\d{10}$/.test(formData.mother_phone_number)) newErrors.mother_phone_number = 'Mother phone number must be 10 digits';
+            if (!formData.mother_email.trim()) {
+                newErrors.mother_email = 'Mother email is required';
+            } else if (!/\S+@\S+\.\S+/.test(formData.mother_email)) {
+                newErrors.mother_email = 'Mother email is invalid';
+            }
+            if (!formData.mother_phone_number.trim()) {
+                newErrors.mother_phone_number = 'Mother phone number is required';
+            } else if (!/^\d{10}$/.test(formData.mother_phone_number)) {
+                newErrors.mother_phone_number = 'Mother phone number must be 10 digits';
+            }
         }
 
+        console.log(`❗ Validation errors for step ${step}:`, newErrors);
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        const isValid = Object.keys(newErrors).length === 0;
+        console.log(`✅ Validation result for step ${step}:`, isValid);
+        return isValid;
     };
 
     const handleNext = () => {
@@ -137,38 +172,40 @@ const StudentSignup = () => {
     };
 
     const handleSubmit = async (e) => {
+        console.log("🚀 handleSubmit called!");
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!validateStep(4)) return;
+        console.log("📊 Current step:", currentStep);
 
+        if (!validateStep(4)) {
+            console.log("❌ Validation failed for step 4");
+            return;
+        }
+
+        console.log("✅ Validation passed, setting loading");
         setLoading(true);
 
         try {
-            // Prepare data for API call (excluding confirm_password)
-            const { confirm_password, ...apiData } = formData;
+            console.log("📝 About to submit:", formData);
+            const result = await signUpStudent(formData);
+            console.log("📤 signUpStudent result:", result);
 
-            // API call to your backend
-            const response = await fetch('/api/student/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(apiData)
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                console.log('Registration successful:', result);
-                // Handle success (redirect, show success message, etc.)
-                alert('Registration successful!');
+            if (result?.success) {
+                console.log("✅ Registration successful!");
+                // You can add navigation logic here
+                // navigate('/login') or show success message
+                navigate('/login');
+                
             } else {
-                const error = await response.json();
-                setErrors({ submit: error.message || 'Registration failed' });
+                console.log("❌ Registration failed:", result?.error);
+                setErrors({ submit: result?.error || 'Registration failed' });
             }
-
         } catch (err) {
+            console.error("❌ Submit error:", err);
             setErrors({ submit: 'Network error. Please try again.' });
         } finally {
+            console.log("🔄 Setting loading to false");
             setLoading(false);
         }
     };
@@ -246,9 +283,8 @@ const StudentSignup = () => {
                                         <SelectValue placeholder="Select gender" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="male">Male</SelectItem>
-                                        <SelectItem value="female">Female</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
+                                        <SelectItem value="Male">Male</SelectItem>
+                                        <SelectItem value="Female">Female</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.gender && <span className="error-text">{errors.gender}</span>}

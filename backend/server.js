@@ -3,8 +3,11 @@ import envConfigs from './configs/env.config.js';
 import connectDB from './utils/connectDB.js';
 import figlet from 'figlet';
 import Router from './router/index.router.js';
+import cors from 'cors';
 
 const app = express();
+
+app.use(cors());
 
 // Connect database...
 connectDB(envConfigs.DATABASE_URI);
