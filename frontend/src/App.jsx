@@ -1,12 +1,11 @@
-import { useState } from 'react'
-import Loader from './components/Loader'
-import LoginPage from './pages/Login'
-import GradientBarsPreview from './components/mvpblocks/gradient-bars-preview';
-import { GradientBars } from './components/GradientBars';
-import StudentSignup from './pages/auth/SignupStudent';
-import PageNotFound from './pages/PageNotFound';
+import { useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import CircularText from './components/CircularText';
+import Loader from './components/Loader';
+import StudentSignup from './pages/auth/SignupStudent';
+import TeacherSignup from './pages/auth/SignupTeacher';
+import LoginPage from './pages/Login';
+import PageNotFound from './pages/PageNotFound';
+import SchoolSyncLanding from './pages/LandingPage';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -44,12 +43,16 @@ function App() {
       {/* Public Routes */}
       <Route path='/login' element={<LoginPage />} />
       <Route path='/signup/student' element={<StudentSignup />} />
+      <Route path='/signup/teacher' element={<TeacherSignup />} />
 
       {/* Protected Routes */}
       {/* <Route path='/student/homepage',/> */}
 
       {/* Default Route:- Redirect to Login page */}
-      <Route path='/' element={<Navigate to="/login" replace />} />
+      {/* <Route path='/' element={<Navigate to="/login" replace />} /> */}
+
+      {/* Landing Page:- Redirect to landing page */}
+      <Route path='/' element={<SchoolSyncLanding/>}/>
 
       {/* 404 Not Found Page */}
       <Route path='*' element={<PageNotFound />} />

@@ -1,18 +1,24 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GradientBars } from '@/components/ui/gradient-bars';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import { GradientBars } from '@/components/ui/gradient-bars';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Upload, User, Camera } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import '../../css/StudentSignupPage.css';
 import { useAuthStore } from '../../store/authStore';
+import '../../css/TeacherSignupPage.css';
 
-const StudentSignup = () => {
+const TeacherSignup = () => {
+    const navigate = useNavigate();
+    const fileInputRef = useRef(null);
+    
     const [formData, setFormData] = useState({
-        // Student details
+        // Teacher Personal Info
         first_name: '',
         last_name: '',
         email: '',
@@ -20,40 +26,40 @@ const StudentSignup = () => {
         password: '',
         confirm_password: '',
         gender: '',
-
-        // Address details
-        vill: '',
-        post: '',
-        pin: '',
-        dist: '',
+        profile_image_url: '',
+        
+        // Address Information (will be converted to addressId)
+        street: '',
+        city: '',
         state: '',
-
-        // Father details
-        father_first_name: '',
-        father_last_name: '',
-        father_email: '',
-        father_phone_number: '',
-
-        // Mother details
-        mother_first_name: '',
-        mother_last_name: '',
-        mother_email: '',
-        mother_phone_number: '',
+        postal_code: '',
+        country: 'India'
     });
 
     const [currentStep, setCurrentStep] = useState(1);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+    const [imagePreview, setImagePreview] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
 
-    const { signUpStudent } = useAuthStore();
+    const { signUpTeacher } = useAuthStore();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        
+        // Handle phone number - only allow numbers
+        if (name === 'phone_number') {
+            const numericValue = value.replace(/\D/g, '');
+            setFormData(prev => ({
+                ...prev,
+                [name]: numericValue
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
 
         // Clear error when user starts typing
         if (errors[name]) {
@@ -78,87 +84,104 @@ const StudentSignup = () => {
         }
     };
 
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                setErrors(prev => ({
+                    ...prev,
+                    profile_image: 'Please select a valid image file'
+                }));
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                setErrors(prev => ({
+                    ...prev,
+                    profile_image: 'Image size should be less than 5MB'
+                }));
+                return;
+            }
+
+            setImageFile(file);
+            
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImagePreview(e.target.result);
+                setFormData(prev => ({
+                    ...prev,
+                    profile_image_url: e.target.result // In real app, this would be uploaded to server
+                }));
+            };
+            reader.readAsDataURL(file);
+
+            // Clear error
+            if (errors.profile_image) {
+                setErrors(prev => ({
+                    ...prev,
+                    profile_image: ''
+                }));
+            }
+        }
+    };
+
     const validateStep = (step) => {
-        console.log(`🔍 Validating step ${step}`);
         const newErrors = {};
 
         if (step === 1) {
-            // Student details validation
+            // Personal Information Validation
             if (!formData.first_name.trim()) newErrors.first_name = 'First name is required';
             if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
+            
             if (!formData.email.trim()) {
                 newErrors.email = 'Email is required';
             } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-                newErrors.email = 'Email is invalid';
+                newErrors.email = 'Please enter a valid email address';
             }
+            
             if (!formData.phone_number.trim()) {
                 newErrors.phone_number = 'Phone number is required';
             } else if (!/^\d{10}$/.test(formData.phone_number)) {
-                newErrors.phone_number = 'Phone number must be 10 digits';
+                newErrors.phone_number = 'Phone number must be exactly 10 digits';
             }
+            
             if (!formData.password) {
                 newErrors.password = 'Password is required';
             } else if (formData.password.length < 6) {
-                newErrors.password = 'Password must be at least 6 characters';
+                newErrors.password = 'Password must be at least 6 characters long';
             }
+            
             if (!formData.confirm_password) {
-                newErrors.confirm_password = 'Please confirm password';
+                newErrors.confirm_password = 'Please confirm your password';
             } else if (formData.password !== formData.confirm_password) {
                 newErrors.confirm_password = 'Passwords do not match';
             }
-            if (!formData.gender) newErrors.gender = 'Please select gender';
+            
+            if (!formData.gender) {
+                newErrors.gender = 'Please select your gender';
+            }
         }
 
         if (step === 2) {
-            // Address validation
-            if (!formData.vill.trim()) newErrors.vill = 'Village/Area is required';
-            if (!formData.post.trim()) newErrors.post = 'Post office is required';
-            if (!formData.pin.trim()) {
-                newErrors.pin = 'PIN code is required';
-            } else if (!/^\d{6}$/.test(formData.pin)) {
-                newErrors.pin = 'PIN code must be 6 digits';
-            }
-            if (!formData.dist.trim()) newErrors.dist = 'District is required';
+            // Address Information Validation
+            if (!formData.street.trim()) newErrors.street = 'Street address is required';
+            if (!formData.city.trim()) newErrors.city = 'City is required';
             if (!formData.state.trim()) newErrors.state = 'State is required';
+            
+            if (!formData.postal_code.trim()) {
+                newErrors.postal_code = 'Postal code is required';
+            } else if (!/^\d{6}$/.test(formData.postal_code)) {
+                newErrors.postal_code = 'Postal code must be 6 digits';
+            }
+            
+            if (!formData.country.trim()) newErrors.country = 'Country is required';
         }
 
-        if (step === 3) {
-            // Father details validation
-            if (!formData.father_first_name.trim()) newErrors.father_first_name = 'Father first name is required';
-            if (!formData.father_last_name.trim()) newErrors.father_last_name = 'Father last name is required';
-            if (!formData.father_email.trim()) {
-                newErrors.father_email = 'Father email is required';
-            } else if (!/\S+@\S+\.\S+/.test(formData.father_email)) {
-                newErrors.father_email = 'Father email is invalid';
-            }
-            if (!formData.father_phone_number.trim()) {
-                newErrors.father_phone_number = 'Father phone number is required';
-            } else if (!/^\d{10}$/.test(formData.father_phone_number)) {
-                newErrors.father_phone_number = 'Father phone number must be 10 digits';
-            }
-        }
-
-        if (step === 4) {
-            // Mother details validation
-            if (!formData.mother_first_name.trim()) newErrors.mother_first_name = 'Mother first name is required';
-            if (!formData.mother_last_name.trim()) newErrors.mother_last_name = 'Mother last name is required';
-            if (!formData.mother_email.trim()) {
-                newErrors.mother_email = 'Mother email is required';
-            } else if (!/\S+@\S+\.\S+/.test(formData.mother_email)) {
-                newErrors.mother_email = 'Mother email is invalid';
-            }
-            if (!formData.mother_phone_number.trim()) {
-                newErrors.mother_phone_number = 'Mother phone number is required';
-            } else if (!/^\d{10}$/.test(formData.mother_phone_number)) {
-                newErrors.mother_phone_number = 'Mother phone number must be 10 digits';
-            }
-        }
-
-        console.log(`❗ Validation errors for step ${step}:`, newErrors);
         setErrors(newErrors);
-        const isValid = Object.keys(newErrors).length === 0;
-        console.log(`✅ Validation result for step ${step}:`, isValid);
-        return isValid;
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleNext = () => {
@@ -172,40 +195,51 @@ const StudentSignup = () => {
     };
 
     const handleSubmit = async (e) => {
-        console.log("🚀 handleSubmit called!");
         e.preventDefault();
         e.stopPropagation();
 
-        console.log("📊 Current step:", currentStep);
+        if (!validateStep(2)) return;
 
-        if (!validateStep(4)) {
-            console.log("❌ Validation failed for step 4");
-            return;
-        }
-
-        console.log("✅ Validation passed, setting loading");
         setLoading(true);
 
         try {
-            console.log("📝 About to submit:", formData);
-            const result = await signUpStudent(formData);
-            console.log("📤 signUpStudent result:", result);
+            // Prepare data for submission
+            const submitData = {
+                first_name: formData.first_name.trim(),
+                last_name: formData.last_name.trim(),
+                email: formData.email.trim().toLowerCase(),
+                phone_number: parseInt(formData.phone_number), // Convert to int
+                password: formData.password, // Will be hashed by backend
+                profile_image_url: formData.profile_image_url || '',
+                gender: formData.gender, // enum: 'male' or 'female'
+                // Address will be created separately and addressId will be returned
+                address: {
+                    street: formData.street.trim(),
+                    city: formData.city.trim(),
+                    state: formData.state.trim(),
+                    postal_code: formData.postal_code.trim(),
+                    country: formData.country.trim()
+                }
+            };
+
+            console.log("📝 Submitting teacher data:", submitData);
+            const result = await signUpTeacher(submitData);
 
             if (result?.success) {
-                console.log("✅ Registration successful!");
-                // You can add navigation logic here
-                // navigate('/login') or show success message
-                navigate('/login');
-
+                navigate('/login', {
+                    state: {
+                        message: '🎉 Teacher registration successful! Please login to continue.',
+                        email: formData.email,
+                        userType: 'teacher'
+                    }
+                });
             } else {
-                console.log("❌ Registration failed:", result?.error);
-                setErrors({ submit: result?.error || 'Registration failed' });
+                setErrors({ submit: result?.error || 'Registration failed. Please try again.' });
             }
         } catch (err) {
             console.error("❌ Submit error:", err);
             setErrors({ submit: 'Network error. Please try again.' });
         } finally {
-            console.log("🔄 Setting loading to false");
             setLoading(false);
         }
     };
@@ -217,6 +251,43 @@ const StudentSignup = () => {
                     <div className="form-step">
                         <h3 className="step-title">Personal Information</h3>
 
+                        {/* Profile Image Upload */}
+                        <div className="form-group profile-upload">
+                            <Label className="form-label">Profile Picture (Optional)</Label>
+                            <div className="image-upload-container">
+                                <div 
+                                    className="image-upload-area"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    {imagePreview ? (
+                                        <Avatar className="upload-avatar">
+                                            <AvatarImage src={imagePreview} alt="Profile" />
+                                            <AvatarFallback>
+                                                <User size={40} />
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    ) : (
+                                        <div className="upload-placeholder">
+                                            <Camera size={40} />
+                                            <span>Click to upload photo</span>
+                                        </div>
+                                    )}
+                                    <div className="upload-overlay">
+                                        <Camera size={20} />
+                                    </div>
+                                </div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden-file-input"
+                                />
+                            </div>
+                            {errors.profile_image && <span className="error-text">{errors.profile_image}</span>}
+                        </div>
+
+                        {/* Name Fields */}
                         <div className="form-row">
                             <div className="form-group">
                                 <Label htmlFor="first_name" className="form-label">First Name *</Label>
@@ -247,6 +318,7 @@ const StudentSignup = () => {
                             </div>
                         </div>
 
+                        {/* Email */}
                         <div className="form-group">
                             <Label htmlFor="email" className="form-label">Email Address *</Label>
                             <Input
@@ -261,6 +333,7 @@ const StudentSignup = () => {
                             {errors.email && <span className="error-text">{errors.email}</span>}
                         </div>
 
+                        {/* Phone and Gender */}
                         <div className="form-row">
                             <div className="form-group">
                                 <Label htmlFor="phone_number" className="form-label">Phone Number *</Label>
@@ -271,6 +344,7 @@ const StudentSignup = () => {
                                     placeholder="Enter 10-digit phone number"
                                     value={formData.phone_number}
                                     onChange={handleInputChange}
+                                    maxLength="10"
                                     className={`form-input ${errors.phone_number ? 'error' : ''}`}
                                 />
                                 {errors.phone_number && <span className="error-text">{errors.phone_number}</span>}
@@ -283,14 +357,15 @@ const StudentSignup = () => {
                                         <SelectValue placeholder="Select gender" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Male">Male</SelectItem>
-                                        <SelectItem value="Female">Female</SelectItem>
+                                        <SelectItem value="male">Male</SelectItem>
+                                        <SelectItem value="female">Female</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.gender && <span className="error-text">{errors.gender}</span>}
                             </div>
                         </div>
 
+                        {/* Password Fields */}
                         <div className="form-row">
                             <div className="form-group">
                                 <Label htmlFor="password" className="form-label">Password *</Label>
@@ -328,63 +403,35 @@ const StudentSignup = () => {
                     <div className="form-step">
                         <h3 className="step-title">Address Information</h3>
 
+                        {/* Street Address */}
                         <div className="form-group">
-                            <Label htmlFor="vill" className="form-label">Village/Area *</Label>
-                            <Input
-                                id="vill"
-                                name="vill"
-                                type="text"
-                                placeholder="Enter village or area name"
-                                value={formData.vill}
+                            <Label htmlFor="street" className="form-label">Street Address *</Label>
+                            <Textarea
+                                id="street"
+                                name="street"
+                                placeholder="Enter complete street address"
+                                value={formData.street}
                                 onChange={handleInputChange}
-                                className={`form-input ${errors.vill ? 'error' : ''}`}
+                                rows={2}
+                                className={`form-input ${errors.street ? 'error' : ''}`}
                             />
-                            {errors.vill && <span className="error-text">{errors.vill}</span>}
+                            {errors.street && <span className="error-text">{errors.street}</span>}
                         </div>
 
+                        {/* City and State */}
                         <div className="form-row">
                             <div className="form-group">
-                                <Label htmlFor="post" className="form-label">Post Office *</Label>
+                                <Label htmlFor="city" className="form-label">City *</Label>
                                 <Input
-                                    id="post"
-                                    name="post"
+                                    id="city"
+                                    name="city"
                                     type="text"
-                                    placeholder="Enter post office"
-                                    value={formData.post}
+                                    placeholder="Enter city"
+                                    value={formData.city}
                                     onChange={handleInputChange}
-                                    className={`form-input ${errors.post ? 'error' : ''}`}
+                                    className={`form-input ${errors.city ? 'error' : ''}`}
                                 />
-                                {errors.post && <span className="error-text">{errors.post}</span>}
-                            </div>
-
-                            <div className="form-group">
-                                <Label htmlFor="pin" className="form-label">PIN Code *</Label>
-                                <Input
-                                    id="pin"
-                                    name="pin"
-                                    type="text"
-                                    placeholder="Enter 6-digit PIN"
-                                    value={formData.pin}
-                                    onChange={handleInputChange}
-                                    className={`form-input ${errors.pin ? 'error' : ''}`}
-                                />
-                                {errors.pin && <span className="error-text">{errors.pin}</span>}
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <Label htmlFor="dist" className="form-label">District *</Label>
-                                <Input
-                                    id="dist"
-                                    name="dist"
-                                    type="text"
-                                    placeholder="Enter district"
-                                    value={formData.dist}
-                                    onChange={handleInputChange}
-                                    className={`form-input ${errors.dist ? 'error' : ''}`}
-                                />
-                                {errors.dist && <span className="error-text">{errors.dist}</span>}
+                                {errors.city && <span className="error-text">{errors.city}</span>}
                             </div>
 
                             <div className="form-group">
@@ -401,135 +448,37 @@ const StudentSignup = () => {
                                 {errors.state && <span className="error-text">{errors.state}</span>}
                             </div>
                         </div>
-                    </div>
-                );
 
-            case 3:
-                return (
-                    <div className="form-step">
-                        <h3 className="step-title">Father's Information</h3>
-
+                        {/* Postal Code and Country */}
                         <div className="form-row">
                             <div className="form-group">
-                                <Label htmlFor="father_first_name" className="form-label">First Name *</Label>
+                                <Label htmlFor="postal_code" className="form-label">Postal Code *</Label>
                                 <Input
-                                    id="father_first_name"
-                                    name="father_first_name"
+                                    id="postal_code"
+                                    name="postal_code"
                                     type="text"
-                                    placeholder="Enter father's first name"
-                                    value={formData.father_first_name}
+                                    placeholder="Enter 6-digit postal code"
+                                    value={formData.postal_code}
                                     onChange={handleInputChange}
-                                    className={`form-input ${errors.father_first_name ? 'error' : ''}`}
+                                    maxLength="6"
+                                    className={`form-input ${errors.postal_code ? 'error' : ''}`}
                                 />
-                                {errors.father_first_name && <span className="error-text">{errors.father_first_name}</span>}
+                                {errors.postal_code && <span className="error-text">{errors.postal_code}</span>}
                             </div>
 
                             <div className="form-group">
-                                <Label htmlFor="father_last_name" className="form-label">Last Name *</Label>
+                                <Label htmlFor="country" className="form-label">Country *</Label>
                                 <Input
-                                    id="father_last_name"
-                                    name="father_last_name"
+                                    id="country"
+                                    name="country"
                                     type="text"
-                                    placeholder="Enter father's last name"
-                                    value={formData.father_last_name}
+                                    placeholder="Enter country"
+                                    value={formData.country}
                                     onChange={handleInputChange}
-                                    className={`form-input ${errors.father_last_name ? 'error' : ''}`}
+                                    className={`form-input ${errors.country ? 'error' : ''}`}
                                 />
-                                {errors.father_last_name && <span className="error-text">{errors.father_last_name}</span>}
+                                {errors.country && <span className="error-text">{errors.country}</span>}
                             </div>
-                        </div>
-
-                        <div className="form-group">
-                            <Label htmlFor="father_email" className="form-label">Email Address *</Label>
-                            <Input
-                                id="father_email"
-                                name="father_email"
-                                type="email"
-                                placeholder="Enter father's email"
-                                value={formData.father_email}
-                                onChange={handleInputChange}
-                                className={`form-input ${errors.father_email ? 'error' : ''}`}
-                            />
-                            {errors.father_email && <span className="error-text">{errors.father_email}</span>}
-                        </div>
-
-                        <div className="form-group">
-                            <Label htmlFor="father_phone_number" className="form-label">Phone Number *</Label>
-                            <Input
-                                id="father_phone_number"
-                                name="father_phone_number"
-                                type="tel"
-                                placeholder="Enter father's 10-digit phone number"
-                                value={formData.father_phone_number}
-                                onChange={handleInputChange}
-                                className={`form-input ${errors.father_phone_number ? 'error' : ''}`}
-                            />
-                            {errors.father_phone_number && <span className="error-text">{errors.father_phone_number}</span>}
-                        </div>
-                    </div>
-                );
-
-            case 4:
-                return (
-                    <div className="form-step">
-                        <h3 className="step-title">Mother's Information</h3>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <Label htmlFor="mother_first_name" className="form-label">First Name *</Label>
-                                <Input
-                                    id="mother_first_name"
-                                    name="mother_first_name"
-                                    type="text"
-                                    placeholder="Enter mother's first name"
-                                    value={formData.mother_first_name}
-                                    onChange={handleInputChange}
-                                    className={`form-input ${errors.mother_first_name ? 'error' : ''}`}
-                                />
-                                {errors.mother_first_name && <span className="error-text">{errors.mother_first_name}</span>}
-                            </div>
-
-                            <div className="form-group">
-                                <Label htmlFor="mother_last_name" className="form-label">Last Name *</Label>
-                                <Input
-                                    id="mother_last_name"
-                                    name="mother_last_name"
-                                    type="text"
-                                    placeholder="Enter mother's last name"
-                                    value={formData.mother_last_name}
-                                    onChange={handleInputChange}
-                                    className={`form-input ${errors.mother_last_name ? 'error' : ''}`}
-                                />
-                                {errors.mother_last_name && <span className="error-text">{errors.mother_last_name}</span>}
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <Label htmlFor="mother_email" className="form-label">Email Address *</Label>
-                            <Input
-                                id="mother_email"
-                                name="mother_email"
-                                type="email"
-                                placeholder="Enter mother's email"
-                                value={formData.mother_email}
-                                onChange={handleInputChange}
-                                className={`form-input ${errors.mother_email ? 'error' : ''}`}
-                            />
-                            {errors.mother_email && <span className="error-text">{errors.mother_email}</span>}
-                        </div>
-
-                        <div className="form-group">
-                            <Label htmlFor="mother_phone_number" className="form-label">Phone Number *</Label>
-                            <Input
-                                id="mother_phone_number"
-                                name="mother_phone_number"
-                                type="tel"
-                                placeholder="Enter mother's 10-digit phone number"
-                                value={formData.mother_phone_number}
-                                onChange={handleInputChange}
-                                className={`form-input ${errors.mother_phone_number ? 'error' : ''}`}
-                            />
-                            {errors.mother_phone_number && <span className="error-text">{errors.mother_phone_number}</span>}
                         </div>
                     </div>
                 );
@@ -540,7 +489,7 @@ const StudentSignup = () => {
     };
 
     return (
-        <div className="signup-container">
+        <div className="teacher-signup-container">
             <GradientBars
                 bars={25}
                 colors={["#10b981", "#3b82f6", "transparent"]}
@@ -549,26 +498,24 @@ const StudentSignup = () => {
             <div className="signup-content">
                 <div className="signup-header">
                     <div className="school-logo">
-                        <div className="logo-icon">🎓</div>
+                        <div className="logo-icon">👨‍🏫</div>
                         <h1 className="brand-title">SchoolSync</h1>
-                        <div className="logo-icon">🎓</div>
+                        <div className="logo-icon">👩‍🏫</div>
                     </div>
-                    <p className="welcome-text">Join our digital learning community</p>
+                    <p className="welcome-text">Join our teaching community</p>
                 </div>
 
                 {/* Progress Indicator */}
                 <div className="progress-indicator">
-                    {[1, 2, 3, 4].map((step) => (
+                    {[1, 2].map((step) => (
                         <div
                             key={step}
                             className={`progress-step ${currentStep >= step ? 'active' : ''} ${currentStep === step ? 'current' : ''}`}
                         >
                             <div className="step-number">{step}</div>
                             <div className="step-label">
-                                {step === 1 && 'Personal'}
+                                {step === 1 && 'Personal Info'}
                                 {step === 2 && 'Address'}
-                                {step === 3 && 'Father'}
-                                {step === 4 && 'Mother'}
                             </div>
                         </div>
                     ))}
@@ -576,9 +523,9 @@ const StudentSignup = () => {
 
                 <Card className="signup-card">
                     <CardHeader className="card-header">
-                        <CardTitle className="card-title">Student Registration</CardTitle>
+                        <CardTitle className="card-title">Teacher Registration</CardTitle>
                         <CardDescription className="card-description">
-                            Step {currentStep} of 4 - Please fill in all required information
+                            Step {currentStep} of 2 - Please fill in all required information
                         </CardDescription>
                     </CardHeader>
 
@@ -604,7 +551,7 @@ const StudentSignup = () => {
                                     </Button>
                                 )}
 
-                                {currentStep < 4 ? (
+                                {currentStep < 2 ? (
                                     <Button
                                         type="button"
                                         className="next-button"
@@ -635,8 +582,7 @@ const StudentSignup = () => {
 
                 <div className="signup-footer">
                     <p>Already have an account? <Link to="/login" className="signin-link">Sign In</Link></p>
-                    <p>OR</p>
-                    <p>Join as a Teacher? <Link to='/signup/teacher' className='signin-link'>Join</Link></p>
+                    <p>Looking for student registration? <Link to="/signup/student" className="student-link">Student Signup</Link></p>
                     <p className="copyright">© 2025 SchoolSync. All rights reserved.</p>
                 </div>
             </div>
@@ -644,4 +590,4 @@ const StudentSignup = () => {
     );
 };
 
-export default StudentSignup;
+export default TeacherSignup;

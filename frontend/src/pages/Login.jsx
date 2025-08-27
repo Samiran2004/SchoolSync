@@ -134,6 +134,8 @@ const LoginPage = () => {
 
         <div className="login-footer">
           <p>Don't have an account? <Link to="/signup/student" className="signup-link">Create Account</Link></p>
+          <p>OR</p>
+          <p>Join as a Teacher? <Link to='/signup/teacher' className='signup-link'>Join</Link></p>
           <p className="copyright">© 2025 SchoolSync. All rights reserved.</p>
         </div>
       </div>

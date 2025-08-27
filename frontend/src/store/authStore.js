@@ -5,6 +5,7 @@ export const useAuthStore = create((set) => ({
     token: null,
     isLoaded: false,
     userData: null,
+    isLogin: false,
 
     // Fixed: Accept formData directly
     signUpStudent: async (formData) => {
